@@ -5,10 +5,12 @@ import userRoutes from './routes/user.routes.js'
 import bookRoutes from './routes/books.routes.js'
 import { connectDB } from "./lib/db/connectMongoDb.js";
 import cors from 'cors';
+import job from "./lib/cron/cron.js";
 
 dotenv.config()
 const PORT = process.env.PORT || 3000;
 
+job.start()
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // this is used to parse cookies from the request headers in the req.cookies.
