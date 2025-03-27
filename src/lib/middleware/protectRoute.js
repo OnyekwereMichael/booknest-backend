@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 const protectRoute = async (req, res, next) => {
   try {
     // Get the JWT token from cookies
-    const token = req.header("Authorization").replace("Bearer ", "");
+    const token = req.cookies.jwt;
 
     // Check if the token exists
     if (!token) {
