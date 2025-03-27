@@ -1,40 +1,39 @@
 import User from "../../models/user.models.js";
-import jwt from "jsonwebtoken"; 
+import jwt from "jsonwebtoken";
 
 const protectRoute = async (req, res, next) => {
   try {
-    // Get the JWT token from cookies
-    const token = req.header('Authorization').replace('Bearer ', '');
-
-    // Check if the token exists
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized: No token provided' });
+    // Get the JWT token from the Authorization header
+    const authHeader = req.header("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Unauthorized: No token provided" });
     }
 
-    // Verify the token using the secret key
+    // Extract the token
+    const token = authHeader.replace("Bearer ", "");
+
+    // Verify the token
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Check if the token is invalid
     if (!decodedToken) {
-      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+      return res.status(401).json({ message: "Unauthorized: Invalid token" });
     }
 
-    // Find the user in the database by ID (excluding the password field)
+    // Find the user in the database
     const user = await User.findById(decodedToken.userId).select("-password");
-
-    // Check if the user exists
     if (!user) {
-      return res.status(401).json({ message: 'Unauthorized: User not found' });
+      return res.status(401).json({ message: "Unauthorized: User not found" });
     }
 
-    // Attach the user object to the request for further use
+    // Attach the user to the request object
     req.user = user;
 
-    // Proceed to the next middleware or route handler
     next();
   } catch (error) {
-    console.log('Error:', error.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error in protectRoute middleware:", error.message);
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Unauthorized: Invalid token signature" });
+    }
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

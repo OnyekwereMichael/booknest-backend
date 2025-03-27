@@ -32,7 +32,7 @@ title: {
     timestamps: true,
 });
 
-const Image = mongoose.model("Book", bookSchema);
+const Book = mongoose.model("Book", bookSchema);
 
-export default Image;
+export default Book;
 // 4qPqJtpNrr5aVQct

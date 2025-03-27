@@ -2,7 +2,7 @@ import cloudinary from "../lib/cloudinary/cloudinary.js";
 import Book from '../models/book.models.js'
 export const createBooks = async (req, res) => {
   try {
-     const { title, caption, publishYear, image, rating } = req.body;
+    const { title, caption, publishYear, image, rating } = req.body;
      if(!title || !caption || !publishYear || !image || !rating) {
          return res.status(400).json({ error: 'All fields are required' });
      }
@@ -17,8 +17,9 @@ export const createBooks = async (req, res) => {
      title,
     caption,
     rating,
+    publishYear,
     image: imageUrl,
-    user: req.user._id
+    user: req.user?._id
   })
 
    await newBook.save()
@@ -41,7 +42,7 @@ export const getBooks = async (req, res) => {
     .populate('user', 'username profileImg')
     const totalBooks = await Book.countDocuments();
 
-    res.status(200).json({ books, totalBooks, currentPage: page, totalPages: Math.ceil(total / limit) });
+    res.status(200).json({ books, totalBooks, currentPage: page, totalPages: Math.ceil(totalBooks / limit) });
   } catch (error) {
     console.log('Error', error);
     res.status(500).json({ error: 'Internal Server Error' });
