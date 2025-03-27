@@ -7,7 +7,7 @@ import { connectDB } from "./lib/db/connectMongoDb.js";
 import cors from 'cors';
 import job from "./lib/cron/cron.js";
 import { v2 as cloudinary } from 'cloudinary';
-// import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 
 dotenv.config()
 job.start()
@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(cookieParser())
+app.use(cookieParser())
 // this is used to parse cookies from the request headers in the req.cookies.
 
 
