@@ -57,6 +57,7 @@ if (user) {
         username: user.username,
         email: user.email,
         profileImg: user.profileImg,
+        createdAt: user.createdAt
        }
     });
 } else {
@@ -91,6 +92,7 @@ export const login = async (req, res) => {
             username: user.username,
             email: user.email,
             profileImg: user.profileImg,
+            createdAt: user.createdAt
         }
     });
     } catch (error) {
