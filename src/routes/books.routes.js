@@ -5,7 +5,7 @@ import protectRoute from "../lib/middleware/protectRoute.js";
 const router = express.Router();
 
 router.get('/',  getBooks);
-router.get('/user', getRecommendedBook);
+router.get('/user', protectRoute, getRecommendedBook);
 router.post('/', protectRoute, createBooks);
 router.delete('/:id',  deleteBooks);
 // router.post('/login', login);

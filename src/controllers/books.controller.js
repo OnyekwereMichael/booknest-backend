@@ -76,7 +76,7 @@ export const deleteBooks = async (req, res) => {
 
 export const getRecommendedBook = async (req, res) => {
   try {
-     const books = await Book.find({user: req.user._id}).sort({createdAt: -1})
+     const books = await Book.find({user: req.user?._id}).sort({createdAt: -1})
      res.status(200).json({ books });
   } catch (error) {
      console.log('Error', error);
