@@ -61,16 +61,19 @@ export const deleteBooks = async (req, res) => {
       return res.status(403).json({ error: 'You are not authorized to delete this book' });
     }
 
+    console.log('the user', req.user._id.toString(), 'the book user', book.user.toString());
+    
+
     // delete image from cloudinary
     if(book.image && book.image.includes('cloudinary')) {
       const publicId = book.image.split('/').pop().split('.')[0];
       await cloudinary.uploader.destroy(publicId);
     }
  
-    await book.deleteOne()
+    await Book.findByIdAndDelete(req.params.id);
   } catch (error) {
-    console.log('Error', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error('Error deleting book:', error.message);  // Log the actual error message
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
 }
 
