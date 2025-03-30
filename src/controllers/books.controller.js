@@ -57,11 +57,11 @@ export const deleteBooks = async (req, res) => {
     }
  
    //  check if the user is the owner of the book
-    if(book.user.toString() !== req.user._id.toString()){
+    if(book.user.toString() !== req.user?._id.toString()){
       return res.status(403).json({ error: 'You are not authorized to delete this book' });
     }
 
-    console.log('the user', req.user._id.toString(), 'the book user', book.user.toString());
+    console.log('the user', req.user?._id.toString(), 'the book user', book.user.toString());
     
 
     // delete image from cloudinary
