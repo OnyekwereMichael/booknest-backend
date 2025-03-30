@@ -25,8 +25,8 @@ export const createBooks = async (req, res) => {
    await newBook.save()
    res.status(201).json({ message: 'Book created successfully!', book: newBook });
   } catch (error) {
-     console.log('Error', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error creating book:', error.message);  // Log the actual error message
+    res.status(500).json({ message: 'Internal Server Error', error: error.message })
   }
 }
 
@@ -51,31 +51,47 @@ export const getBooks = async (req, res) => {
 
 export const deleteBooks = async (req, res) => {
   try {
+    console.log("Requesting User:", req.user?._id); // Debugging
+    console.log("Book ID to delete:", req.params.id);
+
+    // Find the book
     const book = await Book.findById(req.params.id);
-    if(!book) {
-     return res.status(404).json({ error: 'Book not found' });
-    }
- 
-   //  check if the user is the owner of the book
-    if(book.user.toString() !== req.user?._id.toString()){
-      return res.status(403).json({ error: 'You are not authorized to delete this book' });
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
     }
 
-    console.log('the user', req.user?._id.toString(), 'the book user', book.user.toString());
-    
+    console.log("Book Found:", book);
 
-    // delete image from cloudinary
-    if(book.image && book.image.includes('cloudinary')) {
-      const publicId = book.image.split('/').pop().split('.')[0];
+    // Ensure book.user exists before calling toString()
+    if (!book.user || !req.user?._id) {
+      return res.status(403).json({ error: "User not authorized or book has no owner" });
+    }
+
+    // Check if the logged-in user is the owner of the book
+    if (book.user.toString() !== req.user._id.toString()) {
+      console.log("Unauthorized delete attempt: ", req.user._id.toString(), book.user.toString());
+      return res.status(403).json({ error: "You are not authorized to delete this book" });
+    }
+
+    console.log("Deleting book:", book.title);
+
+    // Delete image from Cloudinary (if exists)
+    if (book.image && book.image.includes("cloudinary")) {
+      const publicId = book.image.split("/").pop().split(".")[0];
       await cloudinary.uploader.destroy(publicId);
     }
- 
+
+    // Delete book from database
     await Book.findByIdAndDelete(req.params.id);
+
+    // Send success response
+    res.status(200).json({ message: "Book deleted successfully" });
+
   } catch (error) {
-    console.error('Error deleting book:', error.message);  // Log the actual error message
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    console.error("Error deleting book:", error.message);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
-}
+};
 
 export const getRecommendedBook = async (req, res) => {
   try {
