@@ -5,8 +5,7 @@ const protectRoute = async (req, res, next) => {
   try {
     // Get the JWT token from the Authorization header
     const token = req.header("Authorization");
-    console.log(token);
-    
+    console.log("Received token:", token);
 
     if (!token || !token.startsWith("Bearer ")) {
       console.log("No token found or invalid format");
@@ -18,8 +17,17 @@ const protectRoute = async (req, res, next) => {
     console.log("Extracted Token:", extractedToken);
 
     // Verify the token using the secret key
-    const decodedToken = jwt.verify(extractedToken, process.env.JWT_SECRET);
-    console.log("Decoded Token:", decodedToken);
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(extractedToken, process.env.JWT_SECRET);
+      console.log("Decoded Token:", decodedToken);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Token expired, please log in again" });
+      }
+      console.error("Error verifying token:", error.message);
+      return res.status(401).json({ error: "Unauthorized: Invalid token" });
+    }
 
     // Ensure the token was correctly decoded
     if (!decodedToken || !decodedToken.userId) {
@@ -44,7 +52,7 @@ const protectRoute = async (req, res, next) => {
     next();
   } catch (error) {
     console.log("Middleware Error:", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

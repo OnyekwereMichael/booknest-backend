@@ -2,33 +2,62 @@ import cloudinary from "../lib/cloudinary/cloudinary.js";
 import Book from '../models/book.models.js'
 export const createBooks = async (req, res) => {
   try {
-    const { title, caption, publishYear, image, rating } = req.body;
-     if(!title || !caption || !publishYear || !image || !rating) {
-         return res.status(400).json({ error: 'All fields are required' });
-     }
-  
-    //  upload image to cloudinary 
-    const uploadResponse = await cloudinary.uploader.upload(image)
-    const imageUrl = uploadResponse.secure_url
+    const { title, caption, publishYear, rating } = req.body;
+    let { image } = req.body;
 
-    // save response 
+    // Check if all required fields are provided
+    if (!title || !caption || !publishYear || !image || !rating) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
 
-  const newBook = new Book({
-     title,
-    caption,
-    rating,
-    publishYear,
-    image: imageUrl,
-    user: req.user?._id
-  })
+    // If an image is provided, upload it to Cloudinary
+    if (image) {
+      try {
+        console.log('Uploading image to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(image);
+        image = uploadResponse.secure_url;  // Extract the image URL from Cloudinary's response
+        console.log('Image uploaded successfully:', image);
+      } catch (uploadError) {
+        console.error("Error uploading image to Cloudinary:", uploadError);
+        return res.status(500).json({ message: 'Error uploading image to Cloudinary', error: uploadError.message });
+      }
+    }
 
-   await newBook.save()
-   res.status(201).json({ message: 'Book created successfully!', book: newBook });
+    // Debugging: Log the final image URL before saving the book
+    console.log('Final image URL:', image);
+
+    // Create a new book and save it to the database
+    const newBook = new Book({
+      title,
+      caption,
+      rating,
+      publishYear,
+      image,
+      user: req.user?._id
+    });
+
+    // Debugging: Log the newBook object to ensure it's correct
+    console.log('New Book:', newBook);
+
+    // Save the new book to the database
+    try {
+      await newBook.save();
+      console.log('Book saved to the database.');
+    } catch (saveError) {
+      console.error('Error saving book to database:', saveError);
+      return res.status(500).json({ message: 'Error saving book to database', error: saveError.message });
+    }
+
+    // Send success response
+    res.status(201).json({ message: 'Book created successfully!', book: newBook });
+
   } catch (error) {
-    console.error('Error creating book:', error.message);  // Log the actual error message
-    res.status(500).json({ message: 'Internal Server Error', error: error.message })
+    console.error('Error creating book:', error);
+    return res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
-}
+};
+
+
 
 export const getBooks = async (req, res) => {
   try {
